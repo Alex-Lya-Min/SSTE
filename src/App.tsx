@@ -228,6 +228,15 @@ function App() {
       />
 
       <main className="main">
+        {focusMode && (
+          <div className="focus-controls">
+            <button onClick={() => setFocusMode(false)}>Normal mode</button>
+            <button onClick={() => setTheme((prev) => (prev === 'light' ? 'dark' : 'light'))}>
+              {theme === 'light' ? 'Dark' : 'Light'}
+            </button>
+          </div>
+        )}
+
         <Toolbar
           hidden={focusMode}
           viewMode={viewMode}
@@ -248,8 +257,17 @@ function App() {
           </section>
         ) : (
           <section className={`workspace mode-${viewMode}`}>
+            <header className="document-header">
+              <h1>{activeDocument.title}</h1>
+              <p>{viewMode.toUpperCase()} MODE</p>
+            </header>
             {(viewMode === 'write' || viewMode === 'split') && (
-              <Editor value={activeDocument.content} onChange={updateContent} onMount={(el) => (textareaRef.current = el)} />
+              <Editor
+                value={activeDocument.content}
+                onChange={updateContent}
+                onMount={(el) => (textareaRef.current = el)}
+                calmMode={focusMode}
+              />
             )}
             {(viewMode === 'preview' || viewMode === 'split') && <Preview html={previewHtml} />}
           </section>

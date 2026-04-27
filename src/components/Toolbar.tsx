@@ -58,9 +58,9 @@ export function Toolbar({
 
       <div className="group">
         <button onClick={onToggleFocus} className={focusMode ? 'active' : ''}>
-          Focus
+          Calm mode
         </button>
-        <button onClick={onToggleTheme}>{theme === 'light' ? 'Dark' : 'Light'} theme</button>
+        <button onClick={onToggleTheme}>{theme === 'light' ? 'Dark' : 'Light'}</button>
       </div>
     </header>
   );

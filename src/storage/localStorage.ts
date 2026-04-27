@@ -6,7 +6,7 @@ const STORAGE_KEY = 'calm-writer-state-v1';
 const getDefaultPreferences = (docId: string): Preferences => ({
   activeDocumentId: docId,
   viewMode: 'write',
-  focusMode: false,
+  focusMode: true,
   theme: 'light'
 });
 
@@ -59,7 +59,7 @@ export const loadState = (): AppState => {
           preferences?.viewMode === 'write' || preferences?.viewMode === 'preview' || preferences?.viewMode === 'split'
             ? preferences.viewMode
             : 'write',
-        focusMode: Boolean(preferences?.focusMode),
+        focusMode: typeof preferences?.focusMode === 'boolean' ? preferences.focusMode : true,
         theme: preferences?.theme === 'dark' ? 'dark' : 'light'
       }
     };
