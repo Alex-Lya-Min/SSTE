@@ -27,7 +27,7 @@ export function Toolbar({
 
   return (
     <header className="toolbar">
-      <div className="group segmented">
+      <div className="group">
         <button onClick={() => onChangeViewMode('write')} className={viewMode === 'write' ? 'active' : ''}>
           Write
         </button>
@@ -52,8 +52,8 @@ export function Toolbar({
             }}
           />
         </label>
-        <button onClick={() => onExport('md')}>.md</button>
-        <button onClick={() => onExport('txt')}>.txt</button>
+        <button onClick={() => onExport('md')}>Export .md</button>
+        <button onClick={() => onExport('txt')}>Export .txt</button>
       </div>
 
       <div className="group">
