@@ -21,22 +21,11 @@ export function Sidebar({
 }: SidebarProps) {
   if (hidden) return null;
 
-  const formatDate = (iso: string) =>
-    new Date(iso).toLocaleDateString(undefined, {
-      month: 'short',
-      day: 'numeric'
-    });
-
   return (
     <aside className="sidebar">
       <div className="sidebar-header">
-        <div>
-          <p className="eyebrow">Library</p>
-          <h2>Documents</h2>
-        </div>
-        <button onClick={onCreate} className="button-primary">
-          New
-        </button>
+        <h2>Documents</h2>
+        <button onClick={onCreate}>New</button>
       </div>
       {documents.length === 0 ? (
         <p className="empty">No documents yet</p>
@@ -47,7 +36,6 @@ export function Sidebar({
               <button className="doc-title" onClick={() => onSelect(doc.id)}>
                 {doc.title}
               </button>
-              <p className="doc-meta">Updated {formatDate(doc.updatedAt)}</p>
               <div className="doc-actions">
                 <button onClick={() => onRename(doc.id)}>Rename</button>
                 <button onClick={() => onDelete(doc.id)}>Delete</button>
