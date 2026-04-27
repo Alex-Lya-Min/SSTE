@@ -248,17 +248,8 @@ function App() {
           </section>
         ) : (
           <section className={`workspace mode-${viewMode}`}>
-            <header className="document-header">
-              <h1>{activeDocument.title}</h1>
-              <p>{viewMode.toUpperCase()} MODE</p>
-            </header>
             {(viewMode === 'write' || viewMode === 'split') && (
-              <Editor
-                value={activeDocument.content}
-                onChange={updateContent}
-                onMount={(el) => (textareaRef.current = el)}
-                calmMode={focusMode}
-              />
+              <Editor value={activeDocument.content} onChange={updateContent} onMount={(el) => (textareaRef.current = el)} />
             )}
             {(viewMode === 'preview' || viewMode === 'split') && <Preview html={previewHtml} />}
           </section>

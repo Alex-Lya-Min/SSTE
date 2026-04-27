@@ -23,9 +23,11 @@ export function Toolbar({
   onExport,
   hidden = false
 }: ToolbarProps) {
+  if (hidden) return null;
+
   return (
-    <header className={`toolbar ${hidden ? 'toolbar-calm' : ''}`}>
-      <div className="group segmented">
+    <header className="toolbar">
+      <div className="group">
         <button onClick={() => onChangeViewMode('write')} className={viewMode === 'write' ? 'active' : ''}>
           Write
         </button>
@@ -50,15 +52,15 @@ export function Toolbar({
             }}
           />
         </label>
-        <button onClick={() => onExport('md')}>.md</button>
-        <button onClick={() => onExport('txt')}>.txt</button>
+        <button onClick={() => onExport('md')}>Export .md</button>
+        <button onClick={() => onExport('txt')}>Export .txt</button>
       </div>
 
       <div className="group">
         <button onClick={onToggleFocus} className={focusMode ? 'active' : ''}>
-          {focusMode ? 'Normal mode' : 'Calm mode'}
+          Focus
         </button>
-        <button onClick={onToggleTheme}>{theme === 'light' ? 'Dark' : 'Light'}</button>
+        <button onClick={onToggleTheme}>{theme === 'light' ? 'Dark' : 'Light'} theme</button>
       </div>
     </header>
   );
