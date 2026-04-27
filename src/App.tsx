@@ -18,7 +18,7 @@ function App() {
   const [documents, setDocuments] = useState<DocumentItem[]>(initial.documents);
   const [activeDocumentId, setActiveDocumentId] = useState<string | null>(initial.preferences.activeDocumentId);
   const [viewMode, setViewMode] = useState<ViewMode>(initial.preferences.viewMode);
-  const [focusMode, setFocusMode] = useState<boolean>(initial.preferences.focusMode);
+  const [focusMode, setFocusMode] = useState<boolean>(true);
   const [theme, setTheme] = useState<'light' | 'dark'>(initial.preferences.theme);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('saved');
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
