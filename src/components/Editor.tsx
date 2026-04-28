@@ -51,6 +51,8 @@ export function Editor({ value, onChange, onMount, calmMode = false }: EditorPro
       document.body.appendChild(mirror);
 
       const targetScroll = marker.offsetTop - caretTopOffsetPx;
+      const lineHeight = Number.parseFloat(styles.lineHeight) || 32;
+      const targetScroll = marker.offsetTop - textarea.clientHeight / 2 + lineHeight;
       textarea.scrollTop = Math.max(0, targetScroll);
 
       document.body.removeChild(mirror);
@@ -68,6 +70,7 @@ export function Editor({ value, onChange, onMount, calmMode = false }: EditorPro
       textarea.removeEventListener('keyup', syncCaretToViewportCenter);
     };
   }, [calmMode, value, caretTopOffsetPx]);
+  }, [calmMode, value]);
 
   return (
     <div

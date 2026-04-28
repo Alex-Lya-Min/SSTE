@@ -278,6 +278,7 @@ input {
   line-height: 1.8;
   font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   padding: 0 max(28px, calc((100% - 760px) / 2));
+  padding: 0;
   transition: transform 180ms ease;
   overflow-x: hidden;
   overflow-y: auto;
@@ -287,6 +288,12 @@ input {
 .editor-shell.typewriter-mode .editor {
   padding-top: 150px;
   padding-bottom: 35vh;
+}
+
+.editor-shell.typewriter-mode .editor {
+  padding-top: 42vh;
+  padding-bottom: 42vh;
+  caret-color: #1abfd1;
 }
 
 .editor-shell.is-empty.is-calm .editor {
