@@ -346,6 +346,12 @@ input {
   color: var(--text);
 }
 
+
+.focus-controls button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .empty-state {
   display: grid;
   place-content: center;
@@ -362,25 +368,25 @@ input {
   grid-template-columns: 1fr;
 }
 
-.app.focus .document-header,
-.app.focus .statusbar {
+.app.calm-synced .document-header,
+.app.calm-synced .statusbar {
   background: color-mix(in srgb, var(--panel) 82%, transparent);
 }
 
-.app.focus .editor,
-.app.focus .preview {
+.app.calm-synced .editor,
+.app.calm-synced .preview {
   padding-top: 24px;
 }
 
-.app.focus .editor-shell.typewriter-mode .editor {
+.app.calm-synced .editor-shell.typewriter-mode .editor {
   padding-top: 22vh;
 }
 
-.app.focus .document-header {
+.app.calm-synced .document-header {
   display: none;
 }
 
-.app.focus .workspace {
+.app.calm-synced .workspace {
   grid-template-rows: 1fr;
 }
 

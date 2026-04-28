@@ -215,8 +215,13 @@ function App() {
   const previewHtml = useMemo(() => renderMarkdown(activeDocument?.content ?? ''), [activeDocument?.content]);
   const stats = useMemo(() => getTextStats(activeDocument?.content ?? ''), [activeDocument?.content]);
 
+  const saveCurrentDocument = () => {
+    if (!activeDocument) return;
+    persist(documents, true);
+  };
+
   return (
-    <div className={`app ${focusMode ? 'focus' : ''}`}>
+    <div className={`app calm-synced ${focusMode ? 'focus' : ''}`}>
       <Sidebar
         hidden={focusMode}
         documents={documents}
@@ -230,6 +235,7 @@ function App() {
       <main className="main">
         {focusMode && (
           <div className="focus-controls">
+            <button onClick={saveCurrentDocument} disabled={!activeDocument}>Save</button>
             <button onClick={() => setFocusMode(false)}>Normal mode</button>
             <button onClick={() => setTheme((prev) => (prev === 'light' ? 'dark' : 'light'))}>
               {theme === 'light' ? 'Dark' : 'Light'}
