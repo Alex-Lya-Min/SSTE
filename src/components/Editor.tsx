@@ -10,6 +10,7 @@ interface EditorProps {
 export function Editor({ value, onChange, onMount, calmMode = false }: EditorProps) {
   const ref = useRef<HTMLTextAreaElement | null>(null);
   const isEmpty = value.trim().length === 0;
+  const caretTopOffsetPx = 150;
 
   useEffect(() => {
     if (ref.current && onMount) onMount(ref.current);
@@ -49,6 +50,7 @@ export function Editor({ value, onChange, onMount, calmMode = false }: EditorPro
       mirror.appendChild(marker);
       document.body.appendChild(mirror);
 
+      const targetScroll = marker.offsetTop - caretTopOffsetPx;
       const lineHeight = Number.parseFloat(styles.lineHeight) || 32;
       const targetScroll = marker.offsetTop - textarea.clientHeight / 2 + lineHeight;
       textarea.scrollTop = Math.max(0, targetScroll);
@@ -67,6 +69,7 @@ export function Editor({ value, onChange, onMount, calmMode = false }: EditorPro
       textarea.removeEventListener('click', syncCaretToViewportCenter);
       textarea.removeEventListener('keyup', syncCaretToViewportCenter);
     };
+  }, [calmMode, value, caretTopOffsetPx]);
   }, [calmMode, value]);
 
   return (
