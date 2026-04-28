@@ -18,7 +18,7 @@ function App() {
   const [documents, setDocuments] = useState<DocumentItem[]>(initial.documents);
   const [activeDocumentId, setActiveDocumentId] = useState<string | null>(initial.preferences.activeDocumentId);
   const [viewMode, setViewMode] = useState<ViewMode>(initial.preferences.viewMode);
-  const [focusMode, setFocusMode] = useState<boolean>(true);
+  const [focusMode, setFocusMode] = useState<boolean>(initial.preferences.focusMode);
   const [theme, setTheme] = useState<'light' | 'dark'>(initial.preferences.theme);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('saved');
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -235,6 +235,17 @@ function App() {
       <main className="main">
         {focusMode && (
           <div className="focus-controls">
+            <div className="focus-view-group" role="group" aria-label="View mode">
+              <button onClick={() => setViewMode('write')} className={viewMode === 'write' ? 'active' : ''}>
+                Write
+              </button>
+              <button onClick={() => setViewMode('preview')} className={viewMode === 'preview' ? 'active' : ''}>
+                Review
+              </button>
+              <button onClick={() => setViewMode('split')} className={viewMode === 'split' ? 'active' : ''}>
+                Split
+              </button>
+            </div>
             <button onClick={saveCurrentDocument} disabled={!activeDocument}>Save</button>
             <button onClick={() => setFocusMode(false)}>Normal mode</button>
             <button onClick={() => setTheme((prev) => (prev === 'light' ? 'dark' : 'light'))}>
