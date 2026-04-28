@@ -67,7 +67,7 @@ input {
 
 .sidebar {
   border-right: 1px solid var(--line);
-  background: var(--panel);
+  background: color-mix(in srgb, var(--panel) 88%, transparent);
   padding: 18px 14px;
 }
 
@@ -115,8 +115,8 @@ input {
 .doc-list li {
   padding: 10px;
   border: 1px solid var(--line);
-  border-radius: 12px;
-  background: var(--surface);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--surface) 84%, transparent);
 }
 
 .doc-list li.active {
@@ -181,7 +181,7 @@ input {
   gap: 12px;
   padding: 12px 16px;
   border-bottom: 1px solid var(--line);
-  background: var(--panel);
+  background: color-mix(in srgb, var(--panel) 84%, transparent);
   align-items: center;
   position: sticky;
   top: 0;
@@ -243,7 +243,7 @@ input {
   justify-content: space-between;
   padding: 12px 24px;
   border-bottom: 1px solid var(--line);
-  background: var(--panel);
+  background: color-mix(in srgb, var(--panel) 84%, transparent);
 }
 
 .document-header h1 {
@@ -263,7 +263,7 @@ input {
   width: 100%;
   height: 100%;
   min-height: 0;
-  padding: 28px 0 0;
+  padding: 24px 0 0;
   padding-bottom: calc(28px + var(--statusbar-h));
 }
 
@@ -302,7 +302,7 @@ input {
   width: 100%;
   height: 100%;
   min-height: 0;
-  padding: 28px max(28px, calc((100% - 760px) / 2));
+  padding: 24px max(28px, calc((100% - 760px) / 2));
   padding-bottom: calc(28px + var(--statusbar-h));
   overflow: auto;
   border-left: 1px solid var(--line);
@@ -324,7 +324,7 @@ input {
   padding: 8px 14px;
   color: var(--muted);
   border-top: 1px solid var(--line-strong);
-  background: var(--panel);
+  background: color-mix(in srgb, var(--panel) 82%, transparent);
   position: fixed;
   left: 0;
   right: 0;
@@ -405,11 +405,11 @@ input {
   padding-top: 22vh;
 }
 
-.app.calm-synced .document-header {
+.app.calm-synced.focus .document-header {
   display: none;
 }
 
-.app.calm-synced .workspace {
+.app.calm-synced.focus .workspace {
   grid-template-rows: 1fr;
 }
 
