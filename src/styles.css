@@ -347,17 +347,6 @@ input {
 }
 
 
-.focus-controls-left {
-  left: 16px;
-  right: auto;
-}
-
-.focus-controls button.active {
-  background: var(--accent-soft);
-  color: var(--accent);
-}
-
-
 .focus-controls button:disabled {
   opacity: 0.5;
   cursor: not-allowed;

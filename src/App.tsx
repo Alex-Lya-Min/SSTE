@@ -234,26 +234,13 @@ function App() {
 
       <main className="main">
         {focusMode && (
-          <>
-            <div className="focus-controls focus-controls-left">
-              <button onClick={() => setViewMode('write')} className={viewMode === 'write' ? 'active' : ''}>
-                Write
-              </button>
-              <button onClick={() => setViewMode('preview')} className={viewMode === 'preview' ? 'active' : ''}>
-                Preview
-              </button>
-              <button onClick={() => setViewMode('split')} className={viewMode === 'split' ? 'active' : ''}>
-                Split
-              </button>
-            </div>
-            <div className="focus-controls">
-              <button onClick={saveCurrentDocument} disabled={!activeDocument}>Save</button>
-              <button onClick={() => setFocusMode(false)}>Normal mode</button>
-              <button onClick={() => setTheme((prev) => (prev === 'light' ? 'dark' : 'light'))}>
-                {theme === 'light' ? 'Dark' : 'Light'}
-              </button>
-            </div>
-          </>
+          <div className="focus-controls">
+            <button onClick={saveCurrentDocument} disabled={!activeDocument}>Save</button>
+            <button onClick={() => setFocusMode(false)}>Normal mode</button>
+            <button onClick={() => setTheme((prev) => (prev === 'light' ? 'dark' : 'light'))}>
+              {theme === 'light' ? 'Dark' : 'Light'}
+            </button>
+          </div>
         )}
 
         <Toolbar
