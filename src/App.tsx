@@ -283,7 +283,7 @@ function App() {
                 value={activeDocument.content}
                 onChange={updateContent}
                 onMount={(el) => (textareaRef.current = el)}
-                calmMode={focusMode}
+                calmMode
               />
             )}
             {(viewMode === 'preview' || viewMode === 'split') && <Preview html={previewHtml} />}
