@@ -147,9 +147,7 @@ input {
 }
 
 .doc-actions button,
-.toolbar button,
-.empty-state button,
-.import-label {
+.empty-state button {
   border: 1px solid var(--btn-border);
   background: linear-gradient(180deg, var(--btn-grad-start) 0%, var(--btn-grad-end) 100%);
   color: var(--text);
@@ -160,12 +158,36 @@ input {
 }
 
 .doc-actions button:active,
-.toolbar button:active,
 .empty-state button:active,
-.import-label:active,
 .button-primary:active {
   background: linear-gradient(180deg, var(--btn-active-start) 0%, var(--btn-active-end) 100%);
   box-shadow: inset 0 1px 2px rgba(31, 36, 48, 0.15);
+}
+
+.toolbar button,
+.import-label,
+.focus-controls button {
+  border: 1px solid var(--line-strong);
+  background: color-mix(in srgb, var(--panel) 88%, transparent);
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 500;
+}
+
+.toolbar button:hover,
+.import-label:hover,
+.focus-controls button:hover {
+  color: var(--text);
+}
+
+.toolbar button:active,
+.import-label:active,
+.focus-controls button:active {
+  transform: translateY(0.5px);
 }
 
 .main {
@@ -213,8 +235,10 @@ input {
   border-right: 0;
 }
 
-.toolbar button.active {
+.toolbar button.active,
+.focus-controls button.active {
   background: var(--accent-soft);
+  border-color: var(--accent);
   color: var(--accent);
 }
 
@@ -340,28 +364,6 @@ input {
   z-index: 30;
   display: flex;
   gap: 8px;
-}
-
-.focus-controls button {
-  border: 1px solid var(--line-strong);
-  background: color-mix(in srgb, var(--panel) 88%, transparent);
-  color: var(--muted);
-  border-radius: 999px;
-  padding: 6px 12px;
-  cursor: pointer;
-  font-size: 11px;
-  line-height: 1;
-  font-weight: 500;
-}
-
-.focus-controls button:hover {
-  color: var(--text);
-}
-
-.focus-controls button.active {
-  border-color: var(--accent);
-  color: var(--accent);
-  background: var(--accent-soft);
 }
 
 .focus-view-group {
