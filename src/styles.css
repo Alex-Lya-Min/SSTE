@@ -337,7 +337,7 @@ input {
   width: 100%;
   height: 100%;
   min-height: 0;
-  padding: var(--document-top-inset) max(28px, calc((100% - 760px) / 2)) 24px;
+  padding: var(--document-top-inset) max(24px, calc((100% - 760px) / 2)) 24px;
   padding-bottom: calc(28px + var(--statusbar-h));
   overflow: auto;
   border-left: 1px solid var(--line);
@@ -406,7 +406,7 @@ input {
 
 .app.calm-synced .editor,
 .app.calm-synced .preview {
-  padding-top: 24px;
+  padding-top: var(--document-top-inset);
 }
 
 .app.calm-synced .editor-shell.typewriter-mode .editor {
