@@ -9,6 +9,7 @@ interface ToolbarProps {
   onToggleTheme: () => void;
   onImport: (file: File) => void;
   onExport: (kind: 'md' | 'txt') => void;
+  canExport: boolean;
   hidden?: boolean;
 }
 
@@ -21,6 +22,7 @@ export function Toolbar({
   onToggleTheme,
   onImport,
   onExport,
+  canExport,
   hidden = false
 }: ToolbarProps) {
   if (hidden) return null;
@@ -52,8 +54,12 @@ export function Toolbar({
             }}
           />
         </label>
-        <button onClick={() => onExport('md')}>Export .md</button>
-        <button onClick={() => onExport('txt')}>Export .txt</button>
+        <button onClick={() => onExport('md')} disabled={!canExport}>
+          Export .md
+        </button>
+        <button onClick={() => onExport('txt')} disabled={!canExport}>
+          Export .txt
+        </button>
       </div>
 
       <div className="group">

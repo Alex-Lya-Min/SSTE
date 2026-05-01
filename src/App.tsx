@@ -5,8 +5,8 @@ import { Sidebar } from './components/Sidebar';
 import { StatusBar } from './components/StatusBar';
 import { Toolbar } from './components/Toolbar';
 import { loadState, saveState } from './storage/localStorage';
-import type { AppState, DocumentItem, SaveStatus, ViewMode } from './types';
-import { createId, extractTitle, getUniqueTitle } from './utils/document';
+import type { AppState, DocumentItem, Preferences, SaveStatus, Theme, ViewMode } from './types';
+import { createId, extractTitle, getUniqueTitle, isUntitledTitle } from './utils/document';
 import { wrapSelection } from './utils/editorShortcuts';
 import { renderMarkdown } from './utils/markdown';
 import { getTextStats } from './utils/textStats';
@@ -19,7 +19,7 @@ function App() {
   const [activeDocumentId, setActiveDocumentId] = useState<string | null>(initial.preferences.activeDocumentId);
   const [viewMode, setViewMode] = useState<ViewMode>(initial.preferences.viewMode);
   const [focusMode, setFocusMode] = useState<boolean>(initial.preferences.focusMode);
-  const [theme, setTheme] = useState<'light' | 'dark'>(initial.preferences.theme);
+  const [theme, setTheme] = useState<Theme>(initial.preferences.theme);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('saved');
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const autosaveRef = useRef<number | null>(null);
@@ -30,7 +30,11 @@ function App() {
   );
 
   const persist = useCallback(
-    (nextDocuments: DocumentItem[], immediate = false) => {
+    (
+      nextDocuments: DocumentItem[],
+      options: { immediate?: boolean; preferences?: Partial<Preferences> } = {}
+    ) => {
+      const { immediate = false, preferences = {} } = options;
       setSaveStatus(immediate ? 'saving' : 'unsaved');
       const state: AppState = {
         version: 1,
@@ -39,7 +43,8 @@ function App() {
           activeDocumentId,
           focusMode,
           viewMode,
-          theme
+          theme,
+          ...preferences
         }
       };
 
@@ -48,15 +53,20 @@ function App() {
         setSaveStatus('saved');
       };
 
+      if (autosaveRef.current) {
+        window.clearTimeout(autosaveRef.current);
+        autosaveRef.current = null;
+      }
+
       if (immediate) {
         saveNow();
         return;
       }
 
-      if (autosaveRef.current) window.clearTimeout(autosaveRef.current);
       autosaveRef.current = window.setTimeout(() => {
         setSaveStatus('saving');
         saveNow();
+        autosaveRef.current = null;
       }, AUTOSAVE_MS);
     },
     [activeDocumentId, focusMode, theme, viewMode]
@@ -66,19 +76,12 @@ function App() {
     document.documentElement.dataset.theme = theme;
   }, [theme]);
 
-  useEffect(() => {
-    const state: AppState = {
-      version: 1,
-      documents,
-      preferences: {
-        activeDocumentId,
-        viewMode,
-        focusMode,
-        theme
-      }
-    };
-    saveState(state);
-  }, [activeDocumentId, documents, focusMode, theme, viewMode]);
+  useEffect(
+    () => () => {
+      if (autosaveRef.current) window.clearTimeout(autosaveRef.current);
+    },
+    []
+  );
 
   useEffect(() => {
     const handleKey = (event: KeyboardEvent) => {
@@ -87,7 +90,7 @@ function App() {
 
       if (key === 's') {
         event.preventDefault();
-        persist(documents, true);
+        persist(documents, { immediate: true });
         return;
       }
 
@@ -102,7 +105,7 @@ function App() {
         const updatedDoc: DocumentItem = {
           ...doc,
           content: value,
-          title: extractTitle(value),
+          title: isUntitledTitle(doc.title) ? extractTitle(value) : doc.title,
           updatedAt: new Date().toISOString()
         };
         const nextDocs = documents.map((item) => (item.id === doc.id ? updatedDoc : item));
@@ -111,7 +114,7 @@ function App() {
           textareaRef.current?.focus();
           textareaRef.current?.setSelectionRange(start, end);
         });
-        persist(nextDocs, false);
+        persist(nextDocs);
       }
     };
 
@@ -131,7 +134,12 @@ function App() {
     const nextDocs = [newDoc, ...documents];
     setDocuments(nextDocs);
     setActiveDocumentId(newDoc.id);
-    persist(nextDocs, true);
+    persist(nextDocs, { immediate: true, preferences: { activeDocumentId: newDoc.id } });
+  };
+
+  const selectDocument = (id: string) => {
+    setActiveDocumentId(id);
+    persist(documents, { immediate: true, preferences: { activeDocumentId: id } });
   };
 
   const renameDocument = (id: string) => {
@@ -145,7 +153,7 @@ function App() {
       item.id === id ? { ...item, title: uniqueTitle, updatedAt: new Date().toISOString() } : item
     );
     setDocuments(nextDocs);
-    persist(nextDocs, true);
+    persist(nextDocs, { immediate: true });
   };
 
   const deleteDocument = (id: string) => {
@@ -160,13 +168,13 @@ function App() {
 
     if (nextDocs.length === 0) {
       setActiveDocumentId(null);
-      persist(nextDocs, true);
+      persist(nextDocs, { immediate: true, preferences: { activeDocumentId: null } });
       return;
     }
 
     const nextActive = nextDocs[idx] ?? nextDocs[idx - 1] ?? nextDocs[0];
     setActiveDocumentId(nextActive.id);
-    persist(nextDocs, true);
+    persist(nextDocs, { immediate: true, preferences: { activeDocumentId: nextActive.id } });
   };
 
   const updateContent = (content: string) => {
@@ -174,12 +182,12 @@ function App() {
     const updated: DocumentItem = {
       ...activeDocument,
       content,
-      title: activeDocument.title === 'Untitled' ? extractTitle(content) : activeDocument.title,
+      title: isUntitledTitle(activeDocument.title) ? extractTitle(content) : activeDocument.title,
       updatedAt: new Date().toISOString()
     };
     const nextDocs = documents.map((item) => (item.id === activeDocument.id ? updated : item));
     setDocuments(nextDocs);
-    persist(nextDocs, false);
+    persist(nextDocs);
   };
 
   const importFile = async (file: File) => {
@@ -198,7 +206,7 @@ function App() {
     const nextDocs = [imported, ...documents];
     setDocuments(nextDocs);
     setActiveDocumentId(imported.id);
-    persist(nextDocs, true);
+    persist(nextDocs, { immediate: true, preferences: { activeDocumentId: imported.id } });
   };
 
   const exportFile = (kind: 'md' | 'txt') => {
@@ -209,7 +217,7 @@ function App() {
     anchor.href = url;
     anchor.download = `${activeDocument.title || 'document'}.${kind}`;
     anchor.click();
-    URL.revokeObjectURL(url);
+    window.setTimeout(() => URL.revokeObjectURL(url), 0);
   };
 
   const previewHtml = useMemo(() => renderMarkdown(activeDocument?.content ?? ''), [activeDocument?.content]);
@@ -217,7 +225,28 @@ function App() {
 
   const saveCurrentDocument = () => {
     if (!activeDocument) return;
-    persist(documents, true);
+    persist(documents, { immediate: true });
+  };
+
+  const changeViewMode = (mode: ViewMode) => {
+    setViewMode(mode);
+    persist(documents, { immediate: true, preferences: { viewMode: mode } });
+  };
+
+  const toggleFocusMode = () => {
+    setFocusMode((current) => {
+      const next = !current;
+      persist(documents, { immediate: true, preferences: { focusMode: next } });
+      return next;
+    });
+  };
+
+  const toggleTheme = () => {
+    setTheme((current) => {
+      const next = current === 'light' ? 'dark' : 'light';
+      persist(documents, { immediate: true, preferences: { theme: next } });
+      return next;
+    });
   };
 
   return (
@@ -226,7 +255,7 @@ function App() {
         hidden={focusMode}
         documents={documents}
         activeDocumentId={activeDocumentId}
-        onSelect={setActiveDocumentId}
+        onSelect={selectDocument}
         onCreate={createDocument}
         onRename={renameDocument}
         onDelete={deleteDocument}
@@ -236,19 +265,19 @@ function App() {
         {focusMode && (
           <div className="focus-controls">
             <div className="focus-view-group" role="group" aria-label="View mode">
-              <button onClick={() => setViewMode('write')} className={viewMode === 'write' ? 'active' : ''}>
+              <button onClick={() => changeViewMode('write')} className={viewMode === 'write' ? 'active' : ''}>
                 Write
               </button>
-              <button onClick={() => setViewMode('preview')} className={viewMode === 'preview' ? 'active' : ''}>
+              <button onClick={() => changeViewMode('preview')} className={viewMode === 'preview' ? 'active' : ''}>
                 Review
               </button>
-              <button onClick={() => setViewMode('split')} className={viewMode === 'split' ? 'active' : ''}>
+              <button onClick={() => changeViewMode('split')} className={viewMode === 'split' ? 'active' : ''}>
                 Split
               </button>
             </div>
             <button onClick={saveCurrentDocument} disabled={!activeDocument}>Save</button>
-            <button onClick={() => setFocusMode(false)}>Normal mode</button>
-            <button onClick={() => setTheme((prev) => (prev === 'light' ? 'dark' : 'light'))}>
+            <button onClick={toggleFocusMode}>Normal mode</button>
+            <button onClick={toggleTheme}>
               {theme === 'light' ? 'Dark' : 'Light'}
             </button>
           </div>
@@ -259,11 +288,12 @@ function App() {
           viewMode={viewMode}
           focusMode={focusMode}
           theme={theme}
-          onChangeViewMode={setViewMode}
-          onToggleFocus={() => setFocusMode((prev) => !prev)}
-          onToggleTheme={() => setTheme((prev) => (prev === 'light' ? 'dark' : 'light'))}
+          onChangeViewMode={changeViewMode}
+          onToggleFocus={toggleFocusMode}
+          onToggleTheme={toggleTheme}
           onImport={importFile}
           onExport={exportFile}
+          canExport={Boolean(activeDocument)}
         />
 
         {!activeDocument ? (

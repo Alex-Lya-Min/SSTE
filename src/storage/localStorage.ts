@@ -3,7 +3,7 @@ import { createDemoDocument } from '../utils/document';
 
 const STORAGE_KEY = 'calm-writer-state-v1';
 
-const getDefaultPreferences = (docId: string): Preferences => ({
+const getDefaultPreferences = (docId: string | null): Preferences => ({
   activeDocumentId: docId,
   viewMode: 'write',
   focusMode: true,
@@ -42,13 +42,12 @@ export const loadState = (): AppState => {
     }
 
     const documents = parsed.documents.filter(isDocument);
-    if (documents.length === 0) return createInitialState();
 
     const preferences = parsed.preferences;
     const activeDocumentId =
       preferences?.activeDocumentId && documents.some((doc) => doc.id === preferences.activeDocumentId)
         ? preferences.activeDocumentId
-        : documents[0].id;
+        : documents[0]?.id ?? null;
 
     return {
       version: 1,

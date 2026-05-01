@@ -40,3 +40,5 @@ export const getUniqueTitle = (baseTitle: string, docs: DocumentItem[]): string 
   }
   return `${safeTitle} (${counter})`;
 };
+
+export const isUntitledTitle = (title: string): boolean => /^Untitled(?: \(\d+\))?$/.test(title);

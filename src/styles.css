@@ -178,6 +178,12 @@ input {
   font-weight: 500;
 }
 
+.toolbar button:disabled,
+.focus-controls button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
 .toolbar button:hover,
 .import-label:hover,
 .focus-controls button:hover {
@@ -271,9 +277,13 @@ input {
 }
 
 .document-header h1 {
+  min-width: 0;
   margin: 0;
   font-size: 16px;
   font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .document-header p {
@@ -372,11 +382,6 @@ input {
 }
 
 
-.focus-controls button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
 .empty-state {
   display: grid;
   place-content: center;
@@ -439,5 +444,16 @@ input {
   .sidebar {
     border-right: 0;
     border-bottom: 1px solid var(--line);
+  }
+
+  .focus-controls {
+    left: 12px;
+    right: 12px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .document-header {
+    gap: 12px;
   }
 }
