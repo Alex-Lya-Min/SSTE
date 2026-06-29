@@ -68,5 +68,9 @@ export const loadState = (): AppState => {
 };
 
 export const saveState = (state: AppState): void => {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch {
+    // QuotaExceededError or SecurityError in restricted environments
+  }
 };

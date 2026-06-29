@@ -234,19 +234,15 @@ function App() {
   };
 
   const toggleFocusMode = () => {
-    setFocusMode((current) => {
-      const next = !current;
-      persist(documents, { immediate: true, preferences: { focusMode: next } });
-      return next;
-    });
+    const next = !focusMode;
+    setFocusMode(next);
+    persist(documents, { immediate: true, preferences: { focusMode: next } });
   };
 
   const toggleTheme = () => {
-    setTheme((current) => {
-      const next = current === 'light' ? 'dark' : 'light';
-      persist(documents, { immediate: true, preferences: { theme: next } });
-      return next;
-    });
+    const next = theme === 'light' ? 'dark' : 'light';
+    setTheme(next);
+    persist(documents, { immediate: true, preferences: { theme: next } });
   };
 
   return (
