@@ -11,6 +11,7 @@ const defaults = {
   onToggleTheme: vi.fn(),
   onImport: vi.fn(),
   onExport: vi.fn(),
+  onOpenSettings: vi.fn(),
   canExport: true,
 };
 
@@ -132,6 +133,20 @@ describe('Toolbar', () => {
     render(<Toolbar {...defaults} onExport={onExport} />);
     fireEvent.click(screen.getByText('Export .txt'));
     expect(onExport).toHaveBeenCalledWith('txt');
+  });
+
+  // ── Настройки ─────────────────────────────────────────────────────────────
+
+  it('shows Settings button', () => {
+    render(<Toolbar {...defaults} />);
+    expect(screen.getByText('Settings')).toBeInTheDocument();
+  });
+
+  it('calls onOpenSettings when Settings clicked', () => {
+    const onOpenSettings = vi.fn();
+    render(<Toolbar {...defaults} onOpenSettings={onOpenSettings} />);
+    fireEvent.click(screen.getByText('Settings'));
+    expect(onOpenSettings).toHaveBeenCalledOnce();
   });
 
   // ── Импорт ────────────────────────────────────────────────────────────────

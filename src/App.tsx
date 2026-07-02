@@ -1,13 +1,23 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Editor } from './components/Editor';
 import { Preview } from './components/Preview';
+import { Settings } from './components/Settings';
 import { Sidebar } from './components/Sidebar';
 import { StatusBar } from './components/StatusBar';
 import { Toolbar } from './components/Toolbar';
 import { loadState, saveState } from './storage/localStorage';
-import type { AppState, DocumentItem, Preferences, SaveStatus, Theme, ViewMode } from './types';
+import type {
+  AppState,
+  DocumentItem,
+  HighlightTheme,
+  Preferences,
+  SaveStatus,
+  Theme,
+  ThemeFamily,
+  UiScale,
+  ViewMode
+} from './types';
 import { createId, extractTitle, getUniqueTitle, isUntitledTitle } from './utils/document';
-import { wrapSelection } from './utils/editorShortcuts';
 import { renderMarkdown } from './utils/markdown';
 import { getTextStats } from './utils/textStats';
 
@@ -20,8 +30,11 @@ function App() {
   const [viewMode, setViewMode] = useState<ViewMode>(initial.preferences.viewMode);
   const [focusMode, setFocusMode] = useState<boolean>(initial.preferences.focusMode);
   const [theme, setTheme] = useState<Theme>(initial.preferences.theme);
+  const [themeFamily, setThemeFamily] = useState<ThemeFamily>(initial.preferences.themeFamily);
+  const [uiScale, setUiScale] = useState<UiScale>(initial.preferences.uiScale);
+  const [highlightTheme, setHighlightTheme] = useState<HighlightTheme>(initial.preferences.highlightTheme);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('saved');
-  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const autosaveRef = useRef<number | null>(null);
 
   const activeDocument = useMemo(
@@ -44,6 +57,9 @@ function App() {
           focusMode,
           viewMode,
           theme,
+          themeFamily,
+          uiScale,
+          highlightTheme,
           ...preferences
         }
       };
@@ -69,12 +85,16 @@ function App() {
         autosaveRef.current = null;
       }, AUTOSAVE_MS);
     },
-    [activeDocumentId, focusMode, theme, viewMode]
+    [activeDocumentId, focusMode, highlightTheme, theme, themeFamily, uiScale, viewMode]
   );
 
   useEffect(() => {
-    document.documentElement.dataset.theme = theme;
-  }, [theme]);
+    const root = document.documentElement;
+    root.dataset.theme = theme;
+    root.dataset.themeFamily = themeFamily;
+    root.dataset.uiScale = uiScale;
+    root.dataset.highlight = highlightTheme;
+  }, [highlightTheme, theme, themeFamily, uiScale]);
 
   useEffect(
     () => () => {
@@ -83,44 +103,19 @@ function App() {
     []
   );
 
+  // Ctrl/Cmd+B и Ctrl/Cmd+I обрабатывает keymap внутри Editor (CodeMirror)
   useEffect(() => {
     const handleKey = (event: KeyboardEvent) => {
       if (!(event.ctrlKey || event.metaKey)) return;
-      const key = event.key.toLowerCase();
-
-      if (key === 's') {
+      if (event.key.toLowerCase() === 's') {
         event.preventDefault();
         persist(documents, { immediate: true });
-        return;
-      }
-
-      if (!textareaRef.current || document.activeElement !== textareaRef.current) return;
-
-      if (key === 'b' || key === 'i') {
-        event.preventDefault();
-        const wrapper = key === 'b' ? '**' : '*';
-        const { value, start, end } = wrapSelection(textareaRef.current, wrapper);
-        const doc = activeDocument;
-        if (!doc) return;
-        const updatedDoc: DocumentItem = {
-          ...doc,
-          content: value,
-          title: isUntitledTitle(doc.title) ? extractTitle(value) : doc.title,
-          updatedAt: new Date().toISOString()
-        };
-        const nextDocs = documents.map((item) => (item.id === doc.id ? updatedDoc : item));
-        setDocuments(nextDocs);
-        requestAnimationFrame(() => {
-          textareaRef.current?.focus();
-          textareaRef.current?.setSelectionRange(start, end);
-        });
-        persist(nextDocs);
       }
     };
 
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, [activeDocument, documents, persist]);
+  }, [documents, persist]);
 
   const createDocument = () => {
     const now = new Date().toISOString();
@@ -239,10 +234,26 @@ function App() {
     persist(documents, { immediate: true, preferences: { focusMode: next } });
   };
 
-  const toggleTheme = () => {
-    const next = theme === 'light' ? 'dark' : 'light';
+  const changeTheme = (next: Theme) => {
     setTheme(next);
     persist(documents, { immediate: true, preferences: { theme: next } });
+  };
+
+  const toggleTheme = () => changeTheme(theme === 'light' ? 'dark' : 'light');
+
+  const changeThemeFamily = (family: ThemeFamily) => {
+    setThemeFamily(family);
+    persist(documents, { immediate: true, preferences: { themeFamily: family } });
+  };
+
+  const changeUiScale = (scale: UiScale) => {
+    setUiScale(scale);
+    persist(documents, { immediate: true, preferences: { uiScale: scale } });
+  };
+
+  const changeHighlightTheme = (highlight: HighlightTheme) => {
+    setHighlightTheme(highlight);
+    persist(documents, { immediate: true, preferences: { highlightTheme: highlight } });
   };
 
   return (
@@ -276,6 +287,7 @@ function App() {
             <button onClick={toggleTheme}>
               {theme === 'light' ? 'Dark' : 'Light'}
             </button>
+            <button onClick={() => setSettingsOpen(true)}>Settings</button>
           </div>
         )}
 
@@ -289,6 +301,7 @@ function App() {
           onToggleTheme={toggleTheme}
           onImport={importFile}
           onExport={exportFile}
+          onOpenSettings={() => setSettingsOpen(true)}
           canExport={Boolean(activeDocument)}
         />
 
@@ -306,9 +319,9 @@ function App() {
             </header>
             {(viewMode === 'write' || viewMode === 'split') && (
               <Editor
+                key={activeDocument.id}
                 value={activeDocument.content}
                 onChange={updateContent}
-                onMount={(el) => (textareaRef.current = el)}
                 calmMode
               />
             )}
@@ -318,6 +331,19 @@ function App() {
 
         <StatusBar saveStatus={saveStatus} stats={stats} updatedAt={activeDocument?.updatedAt} />
       </main>
+
+      <Settings
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        theme={theme}
+        themeFamily={themeFamily}
+        uiScale={uiScale}
+        highlightTheme={highlightTheme}
+        onChangeTheme={changeTheme}
+        onChangeThemeFamily={changeThemeFamily}
+        onChangeUiScale={changeUiScale}
+        onChangeHighlightTheme={changeHighlightTheme}
+      />
     </div>
   );
 }

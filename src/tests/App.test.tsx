@@ -1,9 +1,26 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act, within } from '@testing-library/react';
+import { EditorView } from '@codemirror/view';
 import App from '../App';
 
 // Приложение стартует в focusMode=true (Sidebar и Toolbar скрыты).
 // Чтобы получить доступ к Sidebar, нужно сначала кликнуть "Normal mode".
+
+// Редактор — CodeMirror: ввод текста симулируем через dispatch во view
+const getEditorView = (): EditorView => {
+  const content = document.querySelector('.cm-content') as HTMLElement | null;
+  if (!content) throw new Error('CodeMirror content not found');
+  const view = EditorView.findFromDOM(content);
+  if (!view) throw new Error('CodeMirror view not found');
+  return view;
+};
+
+const setEditorText = (text: string) => {
+  const view = getEditorView();
+  act(() => {
+    view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: text } });
+  });
+};
 
 beforeEach(() => {
   localStorage.clear();
@@ -20,7 +37,7 @@ afterEach(() => {
 describe('App — initial render (focus mode)', () => {
   it('renders the Welcome demo document', () => {
     render(<App />);
-    expect(screen.getByText('Welcome')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1, name: 'Welcome' })).toBeInTheDocument();
   });
 
   it('starts in WRITE MODE', () => {
@@ -137,8 +154,7 @@ describe('App — theme toggle', () => {
 describe('App — content editing', () => {
   it('updates word count after typing', async () => {
     render(<App />);
-    const textarea = screen.getByRole('textbox');
-    fireEvent.change(textarea, { target: { value: 'one two three' } });
+    setEditorText('one two three');
     await waitFor(() => {
       expect(screen.getByText('Words: 3')).toBeInTheDocument();
     });
@@ -146,8 +162,7 @@ describe('App — content editing', () => {
 
   it('updates character count after typing', async () => {
     render(<App />);
-    const textarea = screen.getByRole('textbox');
-    fireEvent.change(textarea, { target: { value: 'hello' } });
+    setEditorText('hello');
     await waitFor(() => {
       expect(screen.getByText('Characters: 5')).toBeInTheDocument();
     });
@@ -158,8 +173,7 @@ describe('App — content editing', () => {
     fireEvent.click(screen.getByText('Normal mode'));
     fireEvent.click(screen.getByText('New'));
 
-    const textarea = screen.getByRole('textbox');
-    fireEvent.change(textarea, { target: { value: '# My New Title\n\nContent' } });
+    setEditorText('# My New Title\n\nContent');
 
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: 'My New Title' })).toBeInTheDocument();
@@ -218,6 +232,29 @@ describe('App — document management', () => {
     expect(screen.getAllByRole('listitem').length).toBe(initialCount);
   });
 
+  it('shows the selected document content in the editor', () => {
+    render(<App />);
+    fireEvent.click(screen.getByText('Normal mode'));
+    fireEvent.click(screen.getByText('New'));
+    expect(getEditorView().state.doc.toString()).toBe('');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Welcome' }));
+    expect(getEditorView().state.doc.toString()).toContain('# Welcome');
+  });
+
+  it('does not leak undo history between documents (post-migration regression)', () => {
+    render(<App />);
+    fireEvent.click(screen.getByText('Normal mode'));
+    fireEvent.click(screen.getByText('New'));
+    setEditorText('draft text');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Welcome' }));
+    const view = getEditorView();
+    const before = view.state.doc.toString();
+    fireEvent.keyDown(view.contentDOM, { key: 'z', ctrlKey: true });
+    expect(view.state.doc.toString()).toBe(before);
+  });
+
   it('renames a document', async () => {
     render(<App />);
     fireEvent.click(screen.getByText('Normal mode'));
@@ -226,6 +263,91 @@ describe('App — document management', () => {
     await waitFor(() => {
       expect(screen.getByRole('heading', { level: 1, name: 'Renamed Title' })).toBeInTheDocument();
     });
+  });
+});
+
+// ─── Настройки ────────────────────────────────────────────────────────────────
+
+describe('App — settings', () => {
+  const openSettings = () => {
+    fireEvent.click(screen.getByText('Settings'));
+    return within(screen.getByRole('dialog', { name: 'Settings' }));
+  };
+
+  it('opens settings from focus controls', () => {
+    render(<App />);
+    openSettings();
+    expect(screen.getByRole('dialog', { name: 'Settings' })).toBeInTheDocument();
+  });
+
+  it('opens settings from the toolbar in normal mode', () => {
+    render(<App />);
+    fireEvent.click(screen.getByText('Normal mode'));
+    openSettings();
+    expect(screen.getByRole('dialog', { name: 'Settings' })).toBeInTheDocument();
+  });
+
+  it('closes settings via close button', () => {
+    render(<App />);
+    openSettings();
+    fireEvent.click(screen.getByLabelText('Close settings'));
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
+
+  it('changes theme family to eighties and sets data attribute', () => {
+    render(<App />);
+    const dialog = openSettings();
+    fireEvent.click(dialog.getByRole('button', { name: /'80s/ }));
+    expect(document.documentElement.dataset.themeFamily).toBe('eighties');
+  });
+
+  it('changes theme family to nintendo and sets data attribute', () => {
+    render(<App />);
+    const dialog = openSettings();
+    fireEvent.click(dialog.getByRole('button', { name: /Nintendo/ }));
+    expect(document.documentElement.dataset.themeFamily).toBe('nintendo');
+  });
+
+  it('changes appearance to dark from settings', () => {
+    render(<App />);
+    const dialog = openSettings();
+    fireEvent.click(within(dialog.getByRole('group', { name: 'Appearance' })).getByText('Dark'));
+    expect(document.documentElement.dataset.theme).toBe('dark');
+  });
+
+  it('changes UI scale and sets data attribute', () => {
+    render(<App />);
+    const dialog = openSettings();
+    fireEvent.click(within(dialog.getByRole('group', { name: 'Interface size' })).getByText('L'));
+    expect(document.documentElement.dataset.uiScale).toBe('l');
+  });
+
+  it('changes highlight theme and sets data attribute', () => {
+    render(<App />);
+    const dialog = openSettings();
+    fireEvent.click(dialog.getByText('Monokai'));
+    expect(document.documentElement.dataset.highlight).toBe('monokai');
+  });
+
+  it('persists settings to localStorage', () => {
+    render(<App />);
+    const dialog = openSettings();
+    fireEvent.click(dialog.getByText('VS Code'));
+    fireEvent.click(within(dialog.getByRole('group', { name: 'Interface size' })).getByText('S'));
+
+    const saved = JSON.parse(localStorage.getItem('calm-writer-state-v1')!);
+    expect(saved.preferences.highlightTheme).toBe('vscode');
+    expect(saved.preferences.uiScale).toBe('s');
+  });
+
+  it('restores settings after remount', () => {
+    const first = render(<App />);
+    const dialog = openSettings();
+    fireEvent.click(dialog.getByRole('button', { name: /Nintendo/ }));
+    first.unmount();
+
+    render(<App />);
+    expect(document.documentElement.dataset.themeFamily).toBe('nintendo');
   });
 });
 
@@ -255,8 +377,7 @@ describe('App — save status', () => {
 
   it('shows Unsaved changes after editing', async () => {
     render(<App />);
-    const textarea = screen.getByRole('textbox');
-    fireEvent.change(textarea, { target: { value: 'changed content' } });
+    setEditorText('changed content');
     await waitFor(() => {
       expect(screen.getByText('Unsaved changes')).toBeInTheDocument();
     });
@@ -264,8 +385,7 @@ describe('App — save status', () => {
 
   it('returns to Saved after autosave delay', async () => {
     render(<App />);
-    const textarea = screen.getByRole('textbox');
-    fireEvent.change(textarea, { target: { value: 'changed' } });
+    setEditorText('changed');
     await waitFor(
       () => {
         expect(screen.getByText('Saved')).toBeInTheDocument();

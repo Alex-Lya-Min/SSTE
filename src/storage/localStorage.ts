@@ -1,13 +1,25 @@
-import type { AppState, DocumentItem, Preferences } from '../types';
+import type { AppState, DocumentItem, HighlightTheme, Preferences, Theme, ThemeFamily, UiScale, ViewMode } from '../types';
 import { createDemoDocument } from '../utils/document';
 
 const STORAGE_KEY = 'calm-writer-state-v1';
+
+const VIEW_MODES: readonly ViewMode[] = ['write', 'preview', 'split'];
+const THEMES: readonly Theme[] = ['light', 'dark'];
+const THEME_FAMILIES: readonly ThemeFamily[] = ['classic', 'eighties', 'nintendo'];
+const UI_SCALES: readonly UiScale[] = ['s', 'm', 'l'];
+const HIGHLIGHT_THEMES: readonly HighlightTheme[] = ['default', 'vscode', 'monokai', 'solarized'];
+
+const pick = <T extends string>(value: unknown, allowed: readonly T[], fallback: T): T =>
+  allowed.includes(value as T) ? (value as T) : fallback;
 
 const getDefaultPreferences = (docId: string | null): Preferences => ({
   activeDocumentId: docId,
   viewMode: 'write',
   focusMode: true,
-  theme: 'light'
+  theme: 'light',
+  themeFamily: 'classic',
+  uiScale: 'm',
+  highlightTheme: 'default'
 });
 
 const createInitialState = (): AppState => {
@@ -54,12 +66,12 @@ export const loadState = (): AppState => {
       documents,
       preferences: {
         activeDocumentId,
-        viewMode:
-          preferences?.viewMode === 'write' || preferences?.viewMode === 'preview' || preferences?.viewMode === 'split'
-            ? preferences.viewMode
-            : 'write',
+        viewMode: pick(preferences?.viewMode, VIEW_MODES, 'write'),
         focusMode: typeof preferences?.focusMode === 'boolean' ? preferences.focusMode : true,
-        theme: preferences?.theme === 'dark' ? 'dark' : 'light'
+        theme: pick(preferences?.theme, THEMES, 'light'),
+        themeFamily: pick(preferences?.themeFamily, THEME_FAMILIES, 'classic'),
+        uiScale: pick(preferences?.uiScale, UI_SCALES, 'm'),
+        highlightTheme: pick(preferences?.highlightTheme, HIGHLIGHT_THEMES, 'default')
       }
     };
   } catch {

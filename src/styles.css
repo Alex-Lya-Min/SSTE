@@ -17,6 +17,15 @@
   --btn-active-start: #e3e8f2;
   --btn-active-end: #d6dcea;
   --btn-shadow-inset: rgba(255, 255, 255, 0.9);
+
+  /* Подсветка markdown в редакторе (схема Default) */
+  --md-heading: var(--text);
+  --md-strong: var(--text);
+  --md-emphasis: var(--text);
+  --md-link: var(--accent);
+  --md-code: var(--text);
+  --md-quote: var(--muted);
+  --md-mark: var(--muted);
 }
 
 :root[data-theme='dark'] {
@@ -35,6 +44,152 @@
   --btn-active-start: #2a3242;
   --btn-active-end: #1f2532;
   --btn-shadow-inset: rgba(255, 255, 255, 0.08);
+}
+
+/* ── Схемы подсветки markdown ─────────────────────────────────────────────── */
+
+/* VS Code Light+ */
+:root[data-highlight='vscode'] {
+  --md-heading: #800000;
+  --md-strong: #000080;
+  --md-emphasis: #001080;
+  --md-link: #006ab1;
+  --md-code: #a31515;
+  --md-quote: #008000;
+  --md-mark: #767676;
+}
+
+/* VS Code Dark+ */
+:root[data-theme='dark'][data-highlight='vscode'] {
+  --md-heading: #569cd6;
+  --md-strong: #569cd6;
+  --md-emphasis: #9cdcfe;
+  --md-link: #3794ff;
+  --md-code: #ce9178;
+  --md-quote: #6a9955;
+  --md-mark: #6796e6;
+}
+
+/* Monokai (светлый вариант — затемнённые тона для контраста) */
+:root[data-highlight='monokai'] {
+  --md-heading: #d0146c;
+  --md-strong: #0f8ca8;
+  --md-emphasis: #cc7a00;
+  --md-link: #168fad;
+  --md-code: #8f7a00;
+  --md-quote: #75715e;
+  --md-mark: #918e79;
+}
+
+:root[data-theme='dark'][data-highlight='monokai'] {
+  --md-heading: #f92672;
+  --md-strong: #66d9ef;
+  --md-emphasis: #fd971f;
+  --md-link: #66d9ef;
+  --md-code: #e6db74;
+  --md-quote: #75715e;
+  --md-mark: #75715e;
+}
+
+/* Solarized (акценты общие, нейтральные тона зависят от режима) */
+:root[data-highlight='solarized'] {
+  --md-heading: #cb4b16;
+  --md-strong: #073642;
+  --md-emphasis: #6c71c4;
+  --md-link: #268bd2;
+  --md-code: #2aa198;
+  --md-quote: #93a1a1;
+  --md-mark: #93a1a1;
+}
+
+:root[data-theme='dark'][data-highlight='solarized'] {
+  --md-strong: #eee8d5;
+  --md-quote: #586e75;
+  --md-mark: #586e75;
+}
+
+/* ── Семейства тем ────────────────────────────────────────────────────────── */
+
+/* '80s — светлая: пастельный Майами */
+:root[data-theme-family='eighties'] {
+  --bg: #fdf3f8;
+  --panel: #ffffff;
+  --surface: #fdeef6;
+  --text: #3b1f47;
+  --muted: #8e6a9e;
+  --line: #f3cfe4;
+  --line-strong: #e8b5d6;
+  --accent: #d81b8c;
+  --accent-soft: #fbe0f0;
+  --btn-border: #e0a7cc;
+  --btn-grad-start: #ffffff;
+  --btn-grad-end: #fdeaf4;
+  --btn-active-start: #f8ddee;
+  --btn-active-end: #f2cce4;
+}
+
+/* '80s — тёмная: synthwave */
+:root[data-theme-family='eighties'][data-theme='dark'] {
+  --bg: #16102b;
+  --panel: #1f1738;
+  --surface: #1a1331;
+  --text: #f4ecff;
+  --muted: #9d8fc7;
+  --line: #322558;
+  --line-strong: #453473;
+  --accent: #ff2d95;
+  --accent-soft: #35204a;
+  --btn-border: #55407f;
+  --btn-grad-start: #372a5e;
+  --btn-grad-end: #291f49;
+  --btn-active-start: #2f2453;
+  --btn-active-end: #241b41;
+}
+
+/* Nintendo — светлая: кремовый Famicom с красным акцентом */
+:root[data-theme-family='nintendo'] {
+  --bg: #f6f1e7;
+  --panel: #ffffff;
+  --surface: #f9f5ec;
+  --text: #2b2b2b;
+  --muted: #7a7268;
+  --line: #e5dccb;
+  --line-strong: #d5c9b1;
+  --accent: #e60012;
+  --accent-soft: #fde8e9;
+  --btn-border: #cfc2a8;
+  --btn-grad-start: #fffdf8;
+  --btn-grad-end: #f1e9d8;
+  --btn-active-start: #ece2cd;
+  --btn-active-end: #e2d5ba;
+}
+
+/* Nintendo — тёмная: Switch dark с неоновым красным */
+:root[data-theme-family='nintendo'][data-theme='dark'] {
+  --bg: #1f1f23;
+  --panel: #2d2d33;
+  --surface: #26262b;
+  --text: #f2f2f2;
+  --muted: #a3a3ab;
+  --line: #3a3a42;
+  --line-strong: #4a4a54;
+  --accent: #ff4554;
+  --accent-soft: #3d262b;
+  --btn-border: #55555f;
+  --btn-grad-start: #3a3a42;
+  --btn-grad-end: #2d2d34;
+  --btn-active-start: #33333b;
+  --btn-active-end: #28282f;
+}
+
+/* ── Размер интерфейса ────────────────────────────────────────────────────── */
+
+:root[data-ui-scale='s'] #root {
+  zoom: 0.88;
+}
+
+:root[data-ui-scale='l'] #root {
+  zoom: 1.14;
 }
 
 * {
@@ -309,27 +464,42 @@ input {
   transition: padding-top 180ms ease;
 }
 
-.editor {
+.editor-shell .cm-editor {
+  flex: 1;
   width: 100%;
   height: 100%;
-  border: none;
-  outline: none;
-  resize: none;
   background: transparent;
   color: var(--text);
+}
+
+.editor-shell .cm-editor.cm-focused {
+  outline: none;
+}
+
+.editor-shell .cm-scroller {
   font-size: 21px;
   line-height: 1.8;
   font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   padding: 0 max(24px, calc((100% - 760px) / 2));
-  transition: transform 180ms ease;
   overflow-x: hidden;
   overflow-y: auto;
   scrollbar-gutter: stable;
 }
 
-.editor-shell.typewriter-mode .editor {
+.editor-shell .cm-content {
+  caret-color: var(--text);
+}
+
+.editor-shell .cm-placeholder {
+  color: var(--muted);
+}
+
+.editor-shell.typewriter-mode .cm-scroller {
   padding-top: var(--document-top-inset);
   padding-bottom: 38vh;
+}
+
+.editor-shell.typewriter-mode .cm-content {
   caret-color: #1abfd1;
 }
 
@@ -404,12 +574,8 @@ input {
   background: color-mix(in srgb, var(--panel) 82%, transparent);
 }
 
-.app.calm-synced .editor,
+.app.calm-synced .editor-shell .cm-scroller,
 .app.calm-synced .preview {
-  padding-top: var(--document-top-inset);
-}
-
-.app.calm-synced .editor-shell.typewriter-mode .editor {
   padding-top: var(--document-top-inset);
 }
 
@@ -419,6 +585,115 @@ input {
 
 .app.calm-synced.focus .workspace {
   grid-template-rows: 1fr;
+}
+
+/* ── Настройки ────────────────────────────────────────────────────────────── */
+
+.settings-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(15, 23, 42, 0.45);
+  display: grid;
+  place-items: center;
+  backdrop-filter: blur(2px);
+}
+
+.settings-panel {
+  width: min(460px, calc(100vw - 32px));
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: 0 20px 50px rgba(2, 6, 23, 0.35);
+  padding: 20px;
+  display: grid;
+  gap: 18px;
+}
+
+.settings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.settings-header h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.settings-header button {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 14px;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.settings-header button:hover {
+  background: var(--surface);
+  color: var(--text);
+}
+
+.settings-field {
+  display: grid;
+  gap: 8px;
+}
+
+.settings-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.settings-options {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.settings-options button {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  color: var(--muted);
+  border-radius: 8px;
+  padding: 8px 10px;
+  cursor: pointer;
+  display: grid;
+  gap: 2px;
+  justify-items: center;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.settings-options button small {
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.settings-options button:hover {
+  color: var(--text);
+  border-color: var(--btn-border);
+}
+
+.settings-options button.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.settings-options button.active small {
+  color: var(--accent);
 }
 
 @media (max-width: 1100px) {

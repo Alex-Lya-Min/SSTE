@@ -20,6 +20,9 @@ const validState: AppState = {
     viewMode: 'write',
     focusMode: false,
     theme: 'light',
+    themeFamily: 'classic',
+    uiScale: 'm',
+    highlightTheme: 'default',
   },
 };
 
@@ -144,6 +147,80 @@ describe('loadState', () => {
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(withBadFocus));
     expect(loadState().preferences.focusMode).toBe(true);
+  });
+
+  // ── Новые настройки (themeFamily / uiScale / highlightTheme) ─────────────
+
+  it('defaults new preferences when missing (old saved state)', () => {
+    const legacy = {
+      ...validState,
+      preferences: {
+        activeDocumentId: 'doc-1',
+        viewMode: 'write',
+        focusMode: false,
+        theme: 'dark',
+      },
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(legacy));
+    const prefs = loadState().preferences;
+    expect(prefs.themeFamily).toBe('classic');
+    expect(prefs.uiScale).toBe('m');
+    expect(prefs.highlightTheme).toBe('default');
+    expect(prefs.theme).toBe('dark');
+  });
+
+  it('preserves valid themeFamily', () => {
+    const state = {
+      ...validState,
+      preferences: { ...validState.preferences, themeFamily: 'eighties' },
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    expect(loadState().preferences.themeFamily).toBe('eighties');
+  });
+
+  it('falls back to classic for unknown themeFamily', () => {
+    const state = {
+      ...validState,
+      preferences: { ...validState.preferences, themeFamily: 'sega' },
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    expect(loadState().preferences.themeFamily).toBe('classic');
+  });
+
+  it('preserves valid uiScale', () => {
+    const state = {
+      ...validState,
+      preferences: { ...validState.preferences, uiScale: 'l' },
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    expect(loadState().preferences.uiScale).toBe('l');
+  });
+
+  it('falls back to m for unknown uiScale', () => {
+    const state = {
+      ...validState,
+      preferences: { ...validState.preferences, uiScale: 'xxl' },
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    expect(loadState().preferences.uiScale).toBe('m');
+  });
+
+  it('preserves valid highlightTheme', () => {
+    const state = {
+      ...validState,
+      preferences: { ...validState.preferences, highlightTheme: 'monokai' },
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    expect(loadState().preferences.highlightTheme).toBe('monokai');
+  });
+
+  it('falls back to default for unknown highlightTheme', () => {
+    const state = {
+      ...validState,
+      preferences: { ...validState.preferences, highlightTheme: 'dracula' },
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    expect(loadState().preferences.highlightTheme).toBe('default');
   });
 });
 

@@ -9,6 +9,7 @@ interface ToolbarProps {
   onToggleTheme: () => void;
   onImport: (file: File) => void;
   onExport: (kind: 'md' | 'txt') => void;
+  onOpenSettings: () => void;
   canExport: boolean;
   hidden?: boolean;
 }
@@ -22,6 +23,7 @@ export function Toolbar({
   onToggleTheme,
   onImport,
   onExport,
+  onOpenSettings,
   canExport,
   hidden = false
 }: ToolbarProps) {
@@ -67,6 +69,7 @@ export function Toolbar({
           Calm mode
         </button>
         <button onClick={onToggleTheme}>{theme === 'light' ? 'Dark' : 'Light'}</button>
+        <button onClick={onOpenSettings}>Settings</button>
       </div>
     </header>
   );

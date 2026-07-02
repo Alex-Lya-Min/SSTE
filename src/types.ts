@@ -1,5 +1,8 @@
 export type ViewMode = 'write' | 'preview' | 'split';
 export type Theme = 'light' | 'dark';
+export type ThemeFamily = 'classic' | 'eighties' | 'nintendo';
+export type UiScale = 's' | 'm' | 'l';
+export type HighlightTheme = 'default' | 'vscode' | 'monokai' | 'solarized';
 export type SaveStatus = 'saved' | 'saving' | 'unsaved';
 
 export interface DocumentItem {
@@ -15,6 +18,9 @@ export interface Preferences {
   viewMode: ViewMode;
   focusMode: boolean;
   theme: Theme;
+  themeFamily: ThemeFamily;
+  uiScale: UiScale;
+  highlightTheme: HighlightTheme;
 }
 
 export interface AppState {

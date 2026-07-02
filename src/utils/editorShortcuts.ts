@@ -1,18 +1,15 @@
-export const wrapSelection = (
-  textarea: HTMLTextAreaElement,
-  wrapper: string
-): { value: string; start: number; end: number } => {
-  const value = textarea.value;
-  const start = textarea.selectionStart;
-  const end = textarea.selectionEnd;
-  const selected = value.slice(start, end);
+import type { EditorView } from '@codemirror/view';
 
-  const wrapped = `${wrapper}${selected}${wrapper}`;
-  const nextValue = `${value.slice(0, start)}${wrapped}${value.slice(end)}`;
-
-  return {
-    value: nextValue,
-    start: start + wrapper.length,
-    end: end + wrapper.length
-  };
+export const wrapSelection = (view: EditorView, wrapper: string): boolean => {
+  const { from, to } = view.state.selection.main;
+  view.dispatch({
+    changes: [
+      { from, insert: wrapper },
+      { from: to, insert: wrapper }
+    ],
+    selection: { anchor: from + wrapper.length, head: to + wrapper.length },
+    scrollIntoView: true,
+    userEvent: 'input'
+  });
+  return true;
 };
