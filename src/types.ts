@@ -21,6 +21,7 @@ export interface Preferences {
   themeFamily: ThemeFamily;
   uiScale: UiScale;
   highlightTheme: HighlightTheme;
+  lineNumbers: boolean;
 }
 
 export interface AppState {

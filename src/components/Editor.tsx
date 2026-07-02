@@ -2,14 +2,15 @@ import { useEffect, useRef } from 'react';
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
 import { markdown, markdownLanguage } from '@codemirror/lang-markdown';
 import { HighlightStyle, syntaxHighlighting } from '@codemirror/language';
-import { Annotation, EditorState } from '@codemirror/state';
-import { EditorView, keymap, placeholder } from '@codemirror/view';
+import { Annotation, Compartment, EditorState } from '@codemirror/state';
+import { EditorView, keymap, lineNumbers, placeholder } from '@codemirror/view';
 import { tags } from '@lezer/highlight';
 import { wrapSelection } from '../utils/editorShortcuts';
 
 // Помечает транзакции, пришедшие из пропа value (переключение документа),
 // чтобы не отправлять их обратно через onChange
 const externalChange = Annotation.define<boolean>();
+const lineNumbersCompartment = new Compartment();
 
 // Цвета берутся из CSS-переменных: схема подсветки и светлый/тёмный режим
 // переключаются атрибутами data-highlight / data-theme на <html> без пересоздания вью
@@ -40,9 +41,10 @@ interface EditorProps {
   value: string;
   onChange: (value: string) => void;
   calmMode?: boolean;
+  showLineNumbers?: boolean;
 }
 
-export function Editor({ value, onChange, calmMode = false }: EditorProps) {
+export function Editor({ value, onChange, calmMode = false, showLineNumbers = false }: EditorProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const viewRef = useRef<EditorView | null>(null);
   const onChangeRef = useRef(onChange);
@@ -65,6 +67,7 @@ export function Editor({ value, onChange, calmMode = false }: EditorProps) {
           markdown({ base: markdownLanguage }),
           syntaxHighlighting(markdownHighlight),
           EditorView.lineWrapping,
+          lineNumbersCompartment.of(showLineNumbers ? lineNumbers() : []),
           placeholder('Write your markdown here...'),
           EditorView.contentAttributes.of({ spellcheck: 'true' }),
           EditorView.updateListener.of((update) => {
@@ -85,6 +88,12 @@ export function Editor({ value, onChange, calmMode = false }: EditorProps) {
     // Вью создаётся один раз; дальнейшие изменения value применяет эффект ниже
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    viewRef.current?.dispatch({
+      effects: lineNumbersCompartment.reconfigure(showLineNumbers ? lineNumbers() : [])
+    });
+  }, [showLineNumbers]);
 
   useEffect(() => {
     const view = viewRef.current;

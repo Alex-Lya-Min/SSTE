@@ -269,29 +269,49 @@ describe('App — document management', () => {
 // ─── Настройки ────────────────────────────────────────────────────────────────
 
 describe('App — settings', () => {
+  // Настройки доступны только в normal mode: сначала выходим из calm-режима
   const openSettings = () => {
+    const normalModeButton = screen.queryByText('Normal mode');
+    if (normalModeButton) fireEvent.click(normalModeButton);
     fireEvent.click(screen.getByText('Settings'));
-    return within(screen.getByRole('dialog', { name: 'Settings' }));
+    return within(screen.getByRole('complementary', { name: 'Settings' }));
   };
 
-  it('opens settings from focus controls', () => {
+  it('opens settings as a sidebar panel (not a modal)', () => {
     render(<App />);
     openSettings();
-    expect(screen.getByRole('dialog', { name: 'Settings' })).toBeInTheDocument();
+    expect(screen.getByRole('complementary', { name: 'Settings' })).toBeInTheDocument();
+    expect(screen.queryByRole('dialog')).toBeNull();
   });
 
   it('opens settings from the toolbar in normal mode', () => {
     render(<App />);
     fireEvent.click(screen.getByText('Normal mode'));
-    openSettings();
-    expect(screen.getByRole('dialog', { name: 'Settings' })).toBeInTheDocument();
+    fireEvent.click(screen.getByText('Settings'));
+    expect(screen.getByRole('complementary', { name: 'Settings' })).toBeInTheDocument();
   });
 
-  it('closes settings via close button', () => {
+  it('replaces the document list while settings are open', () => {
+    render(<App />);
+    fireEvent.click(screen.getByText('Normal mode'));
+    expect(screen.getByText('Documents')).toBeInTheDocument();
+    openSettings();
+    expect(screen.queryByText('Documents')).toBeNull();
+  });
+
+  it('restores the document list after closing settings', () => {
+    render(<App />);
+    fireEvent.click(screen.getByText('Normal mode'));
+    openSettings();
+    fireEvent.click(screen.getByLabelText('Close settings'));
+    expect(screen.getByText('Documents')).toBeInTheDocument();
+  });
+
+  it('closes settings via Done button', () => {
     render(<App />);
     openSettings();
     fireEvent.click(screen.getByLabelText('Close settings'));
-    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(screen.queryByRole('complementary', { name: 'Settings' })).toBeNull();
   });
 
   it('changes theme family to eighties and sets data attribute', () => {
@@ -329,15 +349,29 @@ describe('App — settings', () => {
     expect(document.documentElement.dataset.highlight).toBe('monokai');
   });
 
+  it('toggles line numbers in the editor', () => {
+    render(<App />);
+    expect(document.querySelector('.cm-lineNumbers')).toBeNull();
+
+    const dialog = openSettings();
+    fireEvent.click(within(dialog.getByRole('group', { name: 'Line numbers' })).getByText('On'));
+    expect(document.querySelector('.cm-lineNumbers')).not.toBeNull();
+
+    fireEvent.click(within(dialog.getByRole('group', { name: 'Line numbers' })).getByText('Off'));
+    expect(document.querySelector('.cm-lineNumbers')).toBeNull();
+  });
+
   it('persists settings to localStorage', () => {
     render(<App />);
     const dialog = openSettings();
     fireEvent.click(dialog.getByText('VS Code'));
     fireEvent.click(within(dialog.getByRole('group', { name: 'Interface size' })).getByText('S'));
+    fireEvent.click(within(dialog.getByRole('group', { name: 'Line numbers' })).getByText('On'));
 
     const saved = JSON.parse(localStorage.getItem('calm-writer-state-v1')!);
     expect(saved.preferences.highlightTheme).toBe('vscode');
     expect(saved.preferences.uiScale).toBe('s');
+    expect(saved.preferences.lineNumbers).toBe(true);
   });
 
   it('restores settings after remount', () => {
@@ -348,6 +382,78 @@ describe('App — settings', () => {
 
     render(<App />);
     expect(document.documentElement.dataset.themeFamily).toBe('nintendo');
+  });
+});
+
+// ─── Настройки недоступны в calm mode (UI) ────────────────────────────────────
+
+describe('App — settings availability in calm mode (UI)', () => {
+  it('does not show a Settings button in calm mode', () => {
+    render(<App />);
+    // Стартуем в calm mode: focus-controls видны, кнопки Settings быть не должно
+    expect(screen.getByText('Normal mode')).toBeInTheDocument();
+    expect(screen.queryByText('Settings')).toBeNull();
+  });
+
+  it('shows the Settings button only after switching to normal mode', () => {
+    render(<App />);
+    fireEvent.click(screen.getByText('Normal mode'));
+    expect(screen.getByText('Settings')).toBeInTheDocument();
+  });
+
+  it('hides the Settings button again when returning to calm mode', () => {
+    render(<App />);
+    fireEvent.click(screen.getByText('Normal mode'));
+    fireEvent.click(screen.getByText('Calm mode'));
+    expect(screen.queryByText('Settings')).toBeNull();
+  });
+
+  it('closes an open settings panel when switching to calm mode', () => {
+    render(<App />);
+    fireEvent.click(screen.getByText('Normal mode'));
+    fireEvent.click(screen.getByText('Settings'));
+    expect(screen.getByRole('complementary', { name: 'Settings' })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText('Calm mode'));
+    expect(screen.queryByRole('complementary', { name: 'Settings' })).toBeNull();
+  });
+
+  it('never renders the settings panel alongside focus controls', () => {
+    render(<App />);
+    fireEvent.click(screen.getByText('Normal mode'));
+    fireEvent.click(screen.getByText('Settings'));
+    fireEvent.click(screen.getByText('Calm mode'));
+
+    // В calm mode: focus-controls есть, панели настроек нет, сетка одноколоночная
+    expect(screen.getByText('Normal mode')).toBeInTheDocument();
+    expect(screen.queryByRole('complementary', { name: 'Settings' })).toBeNull();
+    expect(document.querySelector('.app')).toHaveClass('focus');
+  });
+
+  it('reopens settings with the document list intact after a calm round-trip', () => {
+    render(<App />);
+    fireEvent.click(screen.getByText('Normal mode'));
+    fireEvent.click(screen.getByText('Settings'));
+    fireEvent.click(screen.getByText('Calm mode'));
+    fireEvent.click(screen.getByText('Normal mode'));
+
+    // После возврата в normal mode список документов на месте, настройки закрыты
+    expect(screen.getByText('Documents')).toBeInTheDocument();
+    expect(screen.queryByRole('complementary', { name: 'Settings' })).toBeNull();
+  });
+
+  it('keeps applied settings after they are closed by calm mode', () => {
+    render(<App />);
+    fireEvent.click(screen.getByText('Normal mode'));
+    fireEvent.click(screen.getByText('Settings'));
+    const dialog = within(screen.getByRole('complementary', { name: 'Settings' }));
+    fireEvent.click(dialog.getByText('Monokai'));
+
+    fireEvent.click(screen.getByText('Calm mode'));
+    // Настройка применена и сохранена, хотя панель закрылась
+    expect(document.documentElement.dataset.highlight).toBe('monokai');
+    const saved = JSON.parse(localStorage.getItem('calm-writer-state-v1')!);
+    expect(saved.preferences.highlightTheme).toBe('monokai');
   });
 });
 

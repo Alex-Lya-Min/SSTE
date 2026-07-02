@@ -31,6 +31,11 @@ const highlightOptions: Option<HighlightTheme>[] = [
   { value: 'solarized', label: 'Solarized' }
 ];
 
+const lineNumbersOptions: Option<'off' | 'on'>[] = [
+  { value: 'off', label: 'Off' },
+  { value: 'on', label: 'On' }
+];
+
 interface OptionGroupProps<T extends string> {
   label: string;
   options: Option<T>[];
@@ -66,10 +71,12 @@ interface SettingsProps {
   themeFamily: ThemeFamily;
   uiScale: UiScale;
   highlightTheme: HighlightTheme;
+  lineNumbers: boolean;
   onChangeTheme: (theme: Theme) => void;
   onChangeThemeFamily: (family: ThemeFamily) => void;
   onChangeUiScale: (scale: UiScale) => void;
   onChangeHighlightTheme: (highlight: HighlightTheme) => void;
+  onChangeLineNumbers: (enabled: boolean) => void;
 }
 
 export function Settings({
@@ -79,10 +86,12 @@ export function Settings({
   themeFamily,
   uiScale,
   highlightTheme,
+  lineNumbers,
   onChangeTheme,
   onChangeThemeFamily,
   onChangeUiScale,
-  onChangeHighlightTheme
+  onChangeHighlightTheme,
+  onChangeLineNumbers
 }: SettingsProps) {
   useEffect(() => {
     if (!open) return;
@@ -96,21 +105,18 @@ export function Settings({
   if (!open) return null;
 
   return (
-    <div className="settings-overlay" onClick={onClose}>
-      <section
-        className="settings-panel"
-        role="dialog"
-        aria-modal="true"
-        aria-label="Settings"
-        onClick={(event) => event.stopPropagation()}
-      >
-        <header className="settings-header">
+    <aside className="sidebar settings-sidebar" aria-label="Settings">
+      <div className="sidebar-header">
+        <div>
+          <p className="eyebrow">Preferences</p>
           <h2>Settings</h2>
-          <button onClick={onClose} aria-label="Close settings">
-            ✕
-          </button>
-        </header>
+        </div>
+        <button onClick={onClose} className="button-primary" aria-label="Close settings">
+          Done
+        </button>
+      </div>
 
+      <div className="settings-body">
         <OptionGroup label="Appearance" options={themeOptions} value={theme} onChange={onChangeTheme} />
         <OptionGroup label="Theme" options={familyOptions} value={themeFamily} onChange={onChangeThemeFamily} />
         <OptionGroup
@@ -120,7 +126,13 @@ export function Settings({
           onChange={onChangeHighlightTheme}
         />
         <OptionGroup label="Interface size" options={scaleOptions} value={uiScale} onChange={onChangeUiScale} />
-      </section>
-    </div>
+        <OptionGroup
+          label="Line numbers"
+          options={lineNumbersOptions}
+          value={lineNumbers ? 'on' : 'off'}
+          onChange={(next) => onChangeLineNumbers(next === 'on')}
+        />
+      </div>
+    </aside>
   );
 }

@@ -19,7 +19,8 @@ const getDefaultPreferences = (docId: string | null): Preferences => ({
   theme: 'light',
   themeFamily: 'classic',
   uiScale: 'm',
-  highlightTheme: 'default'
+  highlightTheme: 'default',
+  lineNumbers: false
 });
 
 const createInitialState = (): AppState => {
@@ -71,7 +72,8 @@ export const loadState = (): AppState => {
         theme: pick(preferences?.theme, THEMES, 'light'),
         themeFamily: pick(preferences?.themeFamily, THEME_FAMILIES, 'classic'),
         uiScale: pick(preferences?.uiScale, UI_SCALES, 'm'),
-        highlightTheme: pick(preferences?.highlightTheme, HIGHLIGHT_THEMES, 'default')
+        highlightTheme: pick(preferences?.highlightTheme, HIGHLIGHT_THEMES, 'default'),
+        lineNumbers: typeof preferences?.lineNumbers === 'boolean' ? preferences.lineNumbers : false
       }
     };
   } catch {

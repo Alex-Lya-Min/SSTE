@@ -33,6 +33,7 @@ function App() {
   const [themeFamily, setThemeFamily] = useState<ThemeFamily>(initial.preferences.themeFamily);
   const [uiScale, setUiScale] = useState<UiScale>(initial.preferences.uiScale);
   const [highlightTheme, setHighlightTheme] = useState<HighlightTheme>(initial.preferences.highlightTheme);
+  const [lineNumbers, setLineNumbers] = useState<boolean>(initial.preferences.lineNumbers);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('saved');
   const autosaveRef = useRef<number | null>(null);
@@ -60,6 +61,7 @@ function App() {
           themeFamily,
           uiScale,
           highlightTheme,
+          lineNumbers,
           ...preferences
         }
       };
@@ -85,7 +87,7 @@ function App() {
         autosaveRef.current = null;
       }, AUTOSAVE_MS);
     },
-    [activeDocumentId, focusMode, highlightTheme, theme, themeFamily, uiScale, viewMode]
+    [activeDocumentId, focusMode, highlightTheme, lineNumbers, theme, themeFamily, uiScale, viewMode]
   );
 
   useEffect(() => {
@@ -231,6 +233,8 @@ function App() {
   const toggleFocusMode = () => {
     const next = !focusMode;
     setFocusMode(next);
+    // Настройки доступны только в normal mode — при входе в calm закрываем их
+    if (next) setSettingsOpen(false);
     persist(documents, { immediate: true, preferences: { focusMode: next } });
   };
 
@@ -256,17 +260,39 @@ function App() {
     persist(documents, { immediate: true, preferences: { highlightTheme: highlight } });
   };
 
+  const changeLineNumbers = (enabled: boolean) => {
+    setLineNumbers(enabled);
+    persist(documents, { immediate: true, preferences: { lineNumbers: enabled } });
+  };
+
   return (
     <div className={`app calm-synced ${focusMode ? 'focus' : ''}`}>
-      <Sidebar
-        hidden={focusMode}
-        documents={documents}
-        activeDocumentId={activeDocumentId}
-        onSelect={selectDocument}
-        onCreate={createDocument}
-        onRename={renameDocument}
-        onDelete={deleteDocument}
-      />
+      {settingsOpen && !focusMode ? (
+        <Settings
+          open={settingsOpen}
+          onClose={() => setSettingsOpen(false)}
+          theme={theme}
+          themeFamily={themeFamily}
+          uiScale={uiScale}
+          highlightTheme={highlightTheme}
+          lineNumbers={lineNumbers}
+          onChangeTheme={changeTheme}
+          onChangeThemeFamily={changeThemeFamily}
+          onChangeUiScale={changeUiScale}
+          onChangeHighlightTheme={changeHighlightTheme}
+          onChangeLineNumbers={changeLineNumbers}
+        />
+      ) : (
+        <Sidebar
+          hidden={focusMode}
+          documents={documents}
+          activeDocumentId={activeDocumentId}
+          onSelect={selectDocument}
+          onCreate={createDocument}
+          onRename={renameDocument}
+          onDelete={deleteDocument}
+        />
+      )}
 
       <main className="main">
         {focusMode && (
@@ -287,7 +313,6 @@ function App() {
             <button onClick={toggleTheme}>
               {theme === 'light' ? 'Dark' : 'Light'}
             </button>
-            <button onClick={() => setSettingsOpen(true)}>Settings</button>
           </div>
         )}
 
@@ -323,6 +348,7 @@ function App() {
                 value={activeDocument.content}
                 onChange={updateContent}
                 calmMode
+                showLineNumbers={lineNumbers}
               />
             )}
             {(viewMode === 'preview' || viewMode === 'split') && <Preview html={previewHtml} />}
@@ -331,19 +357,6 @@ function App() {
 
         <StatusBar saveStatus={saveStatus} stats={stats} updatedAt={activeDocument?.updatedAt} />
       </main>
-
-      <Settings
-        open={settingsOpen}
-        onClose={() => setSettingsOpen(false)}
-        theme={theme}
-        themeFamily={themeFamily}
-        uiScale={uiScale}
-        highlightTheme={highlightTheme}
-        onChangeTheme={changeTheme}
-        onChangeThemeFamily={changeThemeFamily}
-        onChangeUiScale={changeUiScale}
-        onChangeHighlightTheme={changeHighlightTheme}
-      />
     </div>
   );
 }

@@ -9,15 +9,17 @@ const defaults = {
   themeFamily: 'classic' as const,
   uiScale: 'm' as const,
   highlightTheme: 'default' as const,
+  lineNumbers: false,
   onChangeTheme: vi.fn(),
   onChangeThemeFamily: vi.fn(),
   onChangeUiScale: vi.fn(),
   onChangeHighlightTheme: vi.fn(),
+  onChangeLineNumbers: vi.fn(),
 };
 
 const getGroup = (label: string) => within(screen.getByRole('group', { name: label }));
 
-describe('Settings', () => {
+describe('Settings (sidebar panel)', () => {
   // ── Видимость ─────────────────────────────────────────────────────────────
 
   it('renders nothing when closed', () => {
@@ -25,19 +27,29 @@ describe('Settings', () => {
     expect(container.firstChild).toBeNull();
   });
 
-  it('renders a dialog when open', () => {
+  it('renders as a sidebar panel (not a modal) when open', () => {
     render(<Settings {...defaults} />);
-    expect(screen.getByRole('dialog', { name: 'Settings' })).toBeInTheDocument();
+    expect(screen.getByRole('complementary', { name: 'Settings' })).toBeInTheDocument();
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(document.querySelector('.settings-overlay')).toBeNull();
+  });
+
+  it('uses sidebar styling classes', () => {
+    render(<Settings {...defaults} />);
+    const panel = screen.getByRole('complementary', { name: 'Settings' });
+    expect(panel).toHaveClass('sidebar');
+    expect(panel).toHaveClass('settings-sidebar');
   });
 
   // ── Секции ────────────────────────────────────────────────────────────────
 
-  it('renders all four option groups', () => {
+  it('renders all five option groups', () => {
     render(<Settings {...defaults} />);
     expect(screen.getByRole('group', { name: 'Appearance' })).toBeInTheDocument();
     expect(screen.getByRole('group', { name: 'Theme' })).toBeInTheDocument();
     expect(screen.getByRole('group', { name: 'Editor highlighting' })).toBeInTheDocument();
     expect(screen.getByRole('group', { name: 'Interface size' })).toBeInTheDocument();
+    expect(screen.getByRole('group', { name: 'Line numbers' })).toBeInTheDocument();
   });
 
   it('renders appearance options', () => {
@@ -72,14 +84,36 @@ describe('Settings', () => {
     expect(group.getByText('L')).toBeInTheDocument();
   });
 
+  it('renders line numbers options Off / On', () => {
+    render(<Settings {...defaults} />);
+    const group = getGroup('Line numbers');
+    expect(group.getByText('Off')).toBeInTheDocument();
+    expect(group.getByText('On')).toBeInTheDocument();
+  });
+
   // ── Активное состояние ────────────────────────────────────────────────────
 
   it('marks the current values as active', () => {
-    render(<Settings {...defaults} theme="dark" uiScale="l" highlightTheme="monokai" themeFamily="nintendo" />);
+    render(
+      <Settings
+        {...defaults}
+        theme="dark"
+        uiScale="l"
+        highlightTheme="monokai"
+        themeFamily="nintendo"
+        lineNumbers
+      />
+    );
     expect(getGroup('Appearance').getByText('Dark')).toHaveClass('active');
     expect(getGroup('Theme').getByRole('button', { name: /Nintendo/ })).toHaveClass('active');
     expect(getGroup('Editor highlighting').getByText('Monokai')).toHaveClass('active');
     expect(getGroup('Interface size').getByText('L')).toHaveClass('active');
+    expect(getGroup('Line numbers').getByText('On')).toHaveClass('active');
+  });
+
+  it('marks Off as active when line numbers disabled', () => {
+    render(<Settings {...defaults} lineNumbers={false} />);
+    expect(getGroup('Line numbers').getByText('Off')).toHaveClass('active');
   });
 
   it('sets aria-pressed on the active option', () => {
@@ -118,27 +152,27 @@ describe('Settings', () => {
     expect(onChangeUiScale).toHaveBeenCalledWith('s');
   });
 
+  it('calls onChangeLineNumbers(true) when On clicked', () => {
+    const onChangeLineNumbers = vi.fn();
+    render(<Settings {...defaults} onChangeLineNumbers={onChangeLineNumbers} />);
+    fireEvent.click(getGroup('Line numbers').getByText('On'));
+    expect(onChangeLineNumbers).toHaveBeenCalledWith(true);
+  });
+
+  it('calls onChangeLineNumbers(false) when Off clicked', () => {
+    const onChangeLineNumbers = vi.fn();
+    render(<Settings {...defaults} lineNumbers onChangeLineNumbers={onChangeLineNumbers} />);
+    fireEvent.click(getGroup('Line numbers').getByText('Off'));
+    expect(onChangeLineNumbers).toHaveBeenCalledWith(false);
+  });
+
   // ── Закрытие ──────────────────────────────────────────────────────────────
 
-  it('calls onClose when close button clicked', () => {
+  it('calls onClose when Done button clicked', () => {
     const onClose = vi.fn();
     render(<Settings {...defaults} onClose={onClose} />);
     fireEvent.click(screen.getByLabelText('Close settings'));
     expect(onClose).toHaveBeenCalledOnce();
-  });
-
-  it('calls onClose when overlay clicked', () => {
-    const onClose = vi.fn();
-    const { container } = render(<Settings {...defaults} onClose={onClose} />);
-    fireEvent.click(container.querySelector('.settings-overlay')!);
-    expect(onClose).toHaveBeenCalledOnce();
-  });
-
-  it('does not close when clicking inside the panel', () => {
-    const onClose = vi.fn();
-    render(<Settings {...defaults} onClose={onClose} />);
-    fireEvent.click(screen.getByRole('dialog'));
-    expect(onClose).not.toHaveBeenCalled();
   });
 
   it('calls onClose on Escape key', () => {

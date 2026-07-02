@@ -23,6 +23,7 @@ const validState: AppState = {
     themeFamily: 'classic',
     uiScale: 'm',
     highlightTheme: 'default',
+    lineNumbers: false,
   },
 };
 
@@ -166,7 +167,26 @@ describe('loadState', () => {
     expect(prefs.themeFamily).toBe('classic');
     expect(prefs.uiScale).toBe('m');
     expect(prefs.highlightTheme).toBe('default');
+    expect(prefs.lineNumbers).toBe(false);
     expect(prefs.theme).toBe('dark');
+  });
+
+  it('preserves lineNumbers true', () => {
+    const state = {
+      ...validState,
+      preferences: { ...validState.preferences, lineNumbers: true },
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    expect(loadState().preferences.lineNumbers).toBe(true);
+  });
+
+  it('falls back to false for non-boolean lineNumbers', () => {
+    const state = {
+      ...validState,
+      preferences: { ...validState.preferences, lineNumbers: 'yes' },
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    expect(loadState().preferences.lineNumbers).toBe(false);
   });
 
   it('preserves valid themeFamily', () => {

@@ -141,6 +141,39 @@ describe('Editor (CodeMirror)', () => {
     expect(view.state.doc.toString()).toBe('hello *world*');
   });
 
+  // ── Номера строк ──────────────────────────────────────────────────────────
+
+  it('does not show line numbers by default', () => {
+    render(<Editor value="line one" onChange={vi.fn()} />);
+    expect(document.querySelector('.cm-lineNumbers')).toBeNull();
+  });
+
+  it('shows line numbers when showLineNumbers is true', () => {
+    render(<Editor value={'one\ntwo\nthree'} onChange={vi.fn()} showLineNumbers />);
+    expect(document.querySelector('.cm-lineNumbers')).not.toBeNull();
+  });
+
+  it('renders a gutter element for each line', () => {
+    render(<Editor value={'one\ntwo\nthree'} onChange={vi.fn()} showLineNumbers />);
+    const gutter = document.querySelector('.cm-lineNumbers');
+    expect(gutter?.textContent).toContain('1');
+    expect(gutter?.textContent).toContain('2');
+    expect(gutter?.textContent).toContain('3');
+  });
+
+  it('toggles line numbers on a live editor without remount', () => {
+    const { rerender } = render(<Editor value="text" onChange={vi.fn()} />);
+    const before = getView();
+    expect(document.querySelector('.cm-lineNumbers')).toBeNull();
+
+    rerender(<Editor value="text" onChange={vi.fn()} showLineNumbers />);
+    expect(document.querySelector('.cm-lineNumbers')).not.toBeNull();
+    expect(getView()).toBe(before);
+
+    rerender(<Editor value="text" onChange={vi.fn()} showLineNumbers={false} />);
+    expect(document.querySelector('.cm-lineNumbers')).toBeNull();
+  });
+
   // ── Inline-подсветка markdown ─────────────────────────────────────────────
 
   it('applies syntax highlighting spans to markdown content', async () => {
